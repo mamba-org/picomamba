@@ -56,19 +56,22 @@ void transaction_to_txt(Transaction* transaction)
 // wget conda.anaconda.org/conda-forge/osx-arm64/repodata.json -O repodata.json
 // wget conda.anaconda.org/conda-forge/noarch/repodata.json -O noarch_repodata.json
 
+Repo* load_repo(Pool* p, const char* fname, const char* url)
+{
+	FILE* f = fopen(fname, "r");
+	Repo* r = repo_create(p, url);
+	repo_add_conda(r, f, 0);
+	fclose(f);
+
+	return r;
+}
+
 int main(int argc, char** argv)
 {
 	Pool* p = pool_create();
-	FILE* o = fopen("repodata.json", "r");
 
-	Repo* r = repo_create(p, "repo/emscripten-32");
-
-	repo_add_conda(r, o, 0);
-
-	FILE* o2 = fopen("noarch_repodata.json", "r");
-	Repo* r2 = repo_create(p, "repo/noarch");
-	repo_add_conda(r2, o2, 0);
-
+	load_repo(p, "repodata.json", "https://conda.anaconda.org/conda-forge/osx-arm64");
+	load_repo(p, "noarch_repodata.json", "https://conda.anaconda.org/conda-forge/noarch");
 
 	Solver* s = solver_create(p);
 
@@ -89,4 +92,9 @@ int main(int argc, char** argv)
     transaction_order(trans, 0);
 
     transaction_to_txt(trans);
+
+    transaction_free(trans);
+    solver_free(s);
+    queue_free(&q);
+    pool_free(p);
 }
