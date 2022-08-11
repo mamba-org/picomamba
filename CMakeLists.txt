@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(wasmamba)
+project(mamba_wasm)
 
 set (CMAKE_CXX_STANDARD 17)
 # find_package(LibSolv)
@@ -18,16 +18,27 @@ find_library(SOLV_EXT_LIBRARY solvext
 	NO_CMAKE_FIND_ROOT_PATH
 )
 
-add_executable(main src/main.cpp src/mpool.cpp)
+set(MAMBA_WASM_SRCS
+	src/main.cpp
+	src/mpool.cpp
+	src/mrepo.cpp
+	src/prefix_data.cpp
+	src/package_info.cpp
+)
 
+add_executable(main ${MAMBA_WASM_SRCS})
 target_include_directories(main PUBLIC ${SOLV_INCLUDE_DIR})
-
 target_link_libraries(main ${SOLV_LIBRARY} ${SOLV_EXT_LIBRARY})
 
 if (EMSCRIPTEN)
-	add_executable(wamba src/em.cpp src/mpool.cpp)
+	add_executable(mamba_wasm src/em.cpp ${MAMBA_WASM_SRCS})
 
-	set_target_properties(wamba PROPERTIES LINK_FLAGS "--bind -s ERROR_ON_UNDEFINED_SYMBOLS=0 --js-library  ${CMAKE_SOURCE_DIR}/js/library.js -O3")
+	set_target_properties(mamba_wasm
+	  PROPERTIES LINK_FLAGS
+		--bind
+		-sERROR_ON_UNDEFINED_SYMBOLS=0
+		--js-library=${CMAKE_SOURCE_DIR}/js/library.js
+	)
 
-	target_link_libraries(wamba ${SOLV_LIBRARY} ${SOLV_EXT_LIBRARY})
+	target_link_libraries(mamba_wasm ${SOLV_LIBRARY} ${SOLV_EXT_LIBRARY})
 endif()
