@@ -151,5 +151,5 @@ async def parallel_fetch_jsons(urls, callback=None):
 
 async def parallel_imports(urls):
     js_urls = make_js_array(urls)
-    promises = [pyjs._module.dynamic_import(url) for url in urls]
+    promises = [pyjs.async_import_javascript(url) for url in urls]
     await pyjs.js.Promise.all(make_js_array(promises))
