@@ -33,6 +33,43 @@ The usage looks like:
     import regex
     import networkx
 ```
+the output would be
+```
+2022-09-15 11:08:11,235 INFO -- download_repodata
+repodata 0.00% (0/13688)
+repodata 0.00% (0/3511132)
+repodata 0.39% (13688/3511132)
+repodata 0.39% (13688/3511132)
+repodata 30.25% (1062264/3511132)
+repodata 60.12% (2110840/3511132)
+repodata 100.00% (3511132/3511132)
+repodata 100.00% (3511132/3511132)
+2022-09-15 11:08:12,095 INFO -- download_repodata DONE! took 0.86s
+2022-09-15 11:08:12,096 INFO -- untar repodata
+2022-09-15 11:08:13,648 INFO -- untar repodata DONE! took 1.55s
+2022-09-15 11:08:13,649 INFO -- load installed packages
+2022-09-15 11:08:13,654 INFO -- load installed packages DONE! took 0.01s
+2022-09-15 11:08:13,655 INFO -- solve
+2022-09-15 11:08:13,665 INFO -- solve DONE! took 0.01s
+2022-09-15 11:08:13,667 INFO -- install transaction
+2022-09-15 11:08:13,668 INFO -- install-noarch [networkx=2.8.6=pyhd8ed1ab_0, imageio=2.21.2=pyhfa7a67d_0]
+packages 0.00% (0/1629208)
+packages 0.00% (0/4973031)
+packages 32.76% (1629208/4973031)
+packages 32.76% (1629208/4973031)
+packages 74.93% (3726360/4973031)
+packages 84.16% (4185112/4973031)
+packages 100.00% (4973031/4973031)
+packages 100.00% (4973031/4973031)
+2022-09-15 11:08:13,799 INFO -- install noarch networkx=2.8.6=pyhd8ed1ab_0
+2022-09-15 11:08:16,246 INFO -- install noarch networkx=2.8.6=pyhd8ed1ab_0 DONE! took 2.45s
+2022-09-15 11:08:16,247 INFO -- install noarch imageio=2.21.2=pyhfa7a67d_0
+2022-09-15 11:08:16,854 INFO -- install noarch imageio=2.21.2=pyhfa7a67d_0 DONE! took 0.61s
+2022-09-15 11:08:16,855 INFO -- wait for deps
+2022-09-15 11:08:16,857 INFO -- install-arch [regex=2022.1.18=py310h672cd09_0, pillow=9.1.0=h8b4d581_0, clapack=3.2.1=h1a65802_0, scipy=1.8.1=py310h7c23efa_0]
+```
+
+
 
 Warnings
 =========
