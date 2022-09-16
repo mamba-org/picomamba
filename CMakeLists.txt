@@ -87,14 +87,6 @@ target_link_libraries(${INTERFACE_LIB_NAME}
   INTERFACE ${LibSolv_LIBRARIES} nlohmann_json::nlohmann_json)
 
 
-
-# Docs
-# ============
-OPTION(BUILD_DOCS "build docs" ON)
-if(BUILD_DOCS)
-    add_subdirectory(docs)
-endif()
-
 # Python
 # ============
 OPTION(BUILD_PYTHON "${PROJECT_NAME} python binding" ON)
