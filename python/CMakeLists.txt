@@ -4,12 +4,7 @@
 #-------------------------------------------------------------------------------------------------------------------
 find_package(pybind11 CONFIG   REQUIRED)
 
-
-message(STATUS "PYTHON_MODULE_INSTALL_DIR 0)" ${PYTHON_MODULE_INSTALL_DIR})
-
-
 IF(NOT DEFINED PYTHON_MODULE_INSTALL_DIR)
-    message(STATUS "PYTHON_MODULE_INSTALL_DIR A)" ${PYTHON_MODULE_INSTALL_DIR})
     execute_process(
       COMMAND "${PYTHON_EXECUTABLE}" -c "from __future__ import print_function; from distutils.sysconfig import get_python_lib; print(get_python_lib())"
       OUTPUT_VARIABLE PYTHON_SITE
@@ -20,10 +15,8 @@ endif()
 
 SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_MODULE_INSTALL_DIR}
     CACHE PATH "where to install the Python package" FORCE)
-message(STATUS "PYTHON_MODULE_INSTALL_DIR B)" ${PYTHON_MODULE_INSTALL_DIR})
 
 # temporary python module dir
-
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/python/module/${PY_MOD_NAME})
 
 
@@ -31,9 +24,6 @@ add_subdirectory(src)
 
 
 file(COPY ${CMAKE_SOURCE_DIR}/python/module/${PY_MOD_NAME} DESTINATION ${CMAKE_BINARY_DIR}/python/module)
-
-
-message(STATUS "PYTHON_MODULE_INSTALL_DIR C)" ${PYTHON_MODULE_INSTALL_DIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/module/
     DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
