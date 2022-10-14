@@ -64,7 +64,7 @@ find_package(LibSolv REQUIRED)
 
 
 SET(INTERFACE_LIB_NAME picomamba)
-
+target_compile_definitions(picomamba PUBLIC PICOMAMBA_EMSCRIPTEN)
 
 
 file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS  ${PROJECT_INCLUDE_DIR}/*.hpp)
