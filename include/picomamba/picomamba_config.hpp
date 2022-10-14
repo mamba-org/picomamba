@@ -2,10 +2,9 @@
 #ifndef PICOMAMBA_PICOMAMBA_CONFIG_HPP
 #define PICOMAMBA_PICOMAMBA_CONFIG_HPP
 
-#include "picomamba/picomamba_version_major.hpp"
-#include "picomamba/picomamba_version_minor.hpp"
-#include "picomamba/picomamba_version_patch.hpp"
-
+#define PICOMAMBA_VERSION_PATCH 0
+#define PICOMAMBA_VERSION_MINOR 1
+#define PICOMAMBA_VERSION_MAJOR 0
 
 namespace picomamba {
 
