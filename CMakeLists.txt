@@ -65,8 +65,6 @@ find_package(LibSolv REQUIRED)
 
 SET(INTERFACE_LIB_NAME picomamba)
 
-
-
 file(GLOB_RECURSE ${PROJECT_NAME}_HEADERS  ${PROJECT_INCLUDE_DIR}/*.hpp)
 
 
