@@ -16,7 +16,6 @@ def callback(name, done, total):
 
 pm = picomamba.PicoMamba(
     env_prefix=env_prefix,           # the name of the env
-    repodata_dir=repodata_dir,       # where to store repodata
     arch_root_url=arch_url,          # root url for arch pkgs
     noarch_template=noarch_template, # templated url for norach pkgs
     progress_callback=callback,      # report download progress 

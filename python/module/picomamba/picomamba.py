@@ -221,10 +221,8 @@ class PicoMamba(_PicoMambaCore):
             tarfiles = await self.download_noarch_packages(install_noarch)
             self.install_noarch_packages(install_noarch, tarfiles)
 
-            logger.info("wait for deps")
             await arch_promise
             await self.wait_for_emscripten()
-            logger.info("done")
 
     def install_noarch_package(self, package, tar):
         with logged(f"install noarch {package}"):
