@@ -31,7 +31,6 @@ class PicoMamba(_PicoMambaCore):
     def __init__(
         self,
         env_prefix,
-        repodata_dir,
         noarch_template,
         arch_root_url,
         side_path=None,
@@ -53,10 +52,27 @@ class PicoMamba(_PicoMambaCore):
             self.side_path = Path(side_path)
 
         # where downloaded repo-data will be stored
-        self._repodata_dir = Path(repodata_dir)
+        self.indexeddb_mount_path = "/indexeddb"
+        self._repodata_dir = Path(self.indexeddb_mount_path)
 
         # for progress bar
         self._progress = dict()
+
+        self._setup_indexeddb()
+
+    async def initialize(self):
+        # fetch from indexed db and store to filesystem
+        await self.syncfs(polulate=True)
+
+    def _setup_indexeddb(self):
+
+        pyjs.js.Function(
+            "indexeddb_mount_path",
+            """
+        globalThis.pyjs.FS.mkdir(indexeddb_mount_path)
+        globalThis.pyjs.FS.mount(globalThis.pyjs.IDBFS, {}, indexeddb_mount_path)
+        """,
+        )(str(self.indexeddb_mount_path))
 
     def _register_installed_packages(self):
         # ensure that this is really a path to an env
@@ -74,23 +90,59 @@ class PicoMamba(_PicoMambaCore):
 
         self._load_repodata_from_file(filename, url)
 
+    async def syncfs(self, polulate):
+
+        await pyjs.js.Function(
+            "polulate",
+            """
+            return new Promise((resolve, reject) => {
+                console.log("in promise")
+                globalThis.pyjs.FS.syncfs(polulate, function (err) {
+                    if(err === null){
+                        resolve();
+                    }
+                    else{
+                        reject(err);
+                    }
+                })
+            });
+        """,
+        )(bool(polulate))
+
     async def fetch_repodata(self, arch_url, noarch_url):
+
+        repo_data_urls = {"arch": arch_url, "noarch": noarch_url}
+
+        # check if repodata exists
+        for repo_name in list(repo_data_urls.keys()):
+            repodata_dir = self._repodata_dir / repo_name
+            if repodata_dir.is_dir():
+                n = sum(1 for _ in repodata_dir.iterdir())
+                if n == 1:
+                    logger.info(f"{repo_name}-repodata exists! Skipping download")
+                    del repo_data_urls[repo_name]
+
         callback = None
         if self.progress_callback is not None:
             callback = partial(self.progress_callback, "repodata")
 
-        with logged("download_repodata"):
-            # download tarfiles which contain repodata as compressed json
-            callback = [None, self.on_repodata_progress][
-                self.progress_callback is not None
-            ]
-            tars = await parallel_fetch_tarfiles([arch_url, noarch_url], callback)
+        if repo_data_urls:
+            with logged("download_repodata"):
+                # download tarfiles which contain repodata as compressed json
+                callback = [None, self.on_repodata_progress][
+                    self.progress_callback is not None
+                ]
+                tars = await parallel_fetch_tarfiles(
+                    list(repo_data_urls.values()), callback
+                )
 
-        with logged("untar repodata"):
-            # untar and load repodata into libsolv
-            for tar, repo_name in zip(tars, ["arch", "noarch"]):
-                json_path = untar_repodata(tar, path=self._repodata_dir / repo_name)
-                self._load_repodata_from_file(str(json_path), repo_name)
+            with logged("untar repodata"):
+                # untar and load repodata into libsolv
+                for tar, repo_name in zip(tars, repo_data_urls.keys()):
+                    json_path = untar_repodata(tar, path=self._repodata_dir / repo_name)
+                    self._load_repodata_from_file(str(json_path), repo_name)
+
+            await self.syncfs(polulate=False)
 
     def solve(self, specs, dry_run=False, pin_installed=False):
 
@@ -106,6 +158,7 @@ class PicoMamba(_PicoMambaCore):
     # this triggered from on_arch_progress and on_noarch_progress
     # and adds up both for a total progress bar
     def on_progress(self):
+        # print("on progres..")
         downloaded = (
             self._progress["arch_downloaded"] + self._progress["noarch_downloaded"]
         )
@@ -140,7 +193,7 @@ class PicoMamba(_PicoMambaCore):
         # first reported "downloaded" since this
         # is what was already downloaded from
         # previous runs
-        def progress_callback(downloaded, total):
+        def progress_callback(name, pkg_name, downloaded, total):
             if offset[0] is None:
                 offset[0] = downloaded
             downloaded -= offset[0]
@@ -168,10 +221,8 @@ class PicoMamba(_PicoMambaCore):
             tarfiles = await self.download_noarch_packages(install_noarch)
             self.install_noarch_packages(install_noarch, tarfiles)
 
-            logger.info("wait for deps")
-            await self.wait_for_emscripten()
             await arch_promise
-            logger.info("done")
+            await self.wait_for_emscripten()
 
     def install_noarch_package(self, package, tar):
         with logged(f"install noarch {package}"):
