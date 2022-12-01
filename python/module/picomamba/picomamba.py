@@ -35,6 +35,7 @@ class PicoMamba(_PicoMambaCore):
         arch_root_url,
         side_path=None,
         progress_callback=None,
+        use_indexded_db_cache=False,
     ):
         super(PicoMamba, self).__init__()
 
@@ -57,22 +58,25 @@ class PicoMamba(_PicoMambaCore):
 
         # for progress bar
         self._progress = dict()
-
-        self._setup_indexeddb()
+        self.use_indexded_db_cache = use_indexded_db_cache
+        if self.use_indexded_db_cache:
+            self._setup_indexeddb()
 
     async def initialize(self):
         # fetch from indexed db and store to filesystem
         await self.syncfs(polulate=True)
 
     def _setup_indexeddb(self):
-
-        pyjs.js.Function(
-            "indexeddb_mount_path",
-            """
-        globalThis.pyjs.FS.mkdir(indexeddb_mount_path)
-        globalThis.pyjs.FS.mount(globalThis.pyjs.IDBFS, {}, indexeddb_mount_path)
-        """,
-        )(str(self.indexeddb_mount_path))
+        if self.use_indexded_db_cache:
+            pyjs.js.Function(
+                "indexeddb_mount_path",
+                """
+            globalThis.pyjs.FS.mkdir(indexeddb_mount_path)
+            globalThis.pyjs.FS.mkdir(indexeddb_mount_path + "/arch")
+            globalThis.pyjs.FS.mkdir(indexeddb_mount_path + "/noarch")
+            globalThis.pyjs.FS.mount(globalThis.pyjs.IDBFS, {}, indexeddb_mount_path)
+            """,
+            )(str(self.indexeddb_mount_path))
 
     def _register_installed_packages(self):
         # ensure that this is really a path to an env
@@ -91,23 +95,22 @@ class PicoMamba(_PicoMambaCore):
         self._load_repodata_from_file(filename, url)
 
     async def syncfs(self, polulate):
-
-        await pyjs.js.Function(
-            "polulate",
-            """
-            return new Promise((resolve, reject) => {
-                console.log("in promise")
-                globalThis.pyjs.FS.syncfs(polulate, function (err) {
-                    if(err === null){
-                        resolve();
-                    }
-                    else{
-                        reject(err);
-                    }
-                })
-            });
-        """,
-        )(bool(polulate))
+        if self.use_indexded_db_cache:
+            await pyjs.js.Function(
+                "polulate",
+                """
+                return new Promise((resolve, reject) => {
+                    globalThis.pyjs.FS.syncfs(polulate, function (err) {
+                        if(err === null){
+                            resolve();
+                        }
+                        else{
+                            reject(err);
+                        }
+                    })
+                });
+            """,
+            )(bool(polulate))
 
     async def fetch_repodata(self, arch_url, noarch_url):
 
@@ -167,7 +170,7 @@ class PicoMamba(_PicoMambaCore):
             self.progress_callback("packages", downloaded, total)
 
     # this is called when we make progress on downloading arch packages
-    def on_arch_progress(self, status, _, downloaded, total):
+    def on_arch_progress(self, downloaded, total):
         self._progress["arch_downloaded"] = downloaded
         self._progress["arch_total"] = total
         self.on_progress()
