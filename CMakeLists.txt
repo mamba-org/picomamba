@@ -103,6 +103,14 @@ if(BUILD_PYTHON)
 endif()
 
 
+# binary
+# ============
+OPTION(BUILD_BINARY "build binary" ON)
+if(BUILD_BINARY)
+    add_subdirectory(bin)
+endif()
+
+
 
 # Installation
 # ============
