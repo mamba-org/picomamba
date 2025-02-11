@@ -6,10 +6,7 @@
 #include "picomamba/picomamba_core.hpp"
 
 int main(const int argc, const char ** argv)
-{
-    // first argument is the noarch repodata path
-    // second argument is the "arch" repodata path
-    
+{   
     if (argc < 4)
     {
         std::cerr << "Usage: picomamba <noarch_conda_forge_repodata_path> <noarch_emscripten_forge>  <arch_emscripten_forge>" << std::endl;
